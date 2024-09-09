@@ -1,57 +1,85 @@
-import { useState } from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Sidebar from "./components/Sidebar";
-import Dashboard from "./components/Dashboard";
+import React, { useState, useEffect } from "react";
+import { Route, Routes } from "react-router-dom";
+import Sidebar from "./components/admin/Sidebar";
+import HomeAdmin from "./components/admin/HomeAdmin";
+import CentrosComerciales from "./components/admin/centrosComerciales/CentrosComerciales";
+import CentroComercialDetails from "./components/admin/centrosComerciales/CentroComercialDetails";
 import Login from "./components/Login";
-import { Container } from "@mui/material";
 import LandingPage from "./components/LandingPage";
+import { Container } from "@mui/material";
+import axios from "axios";
 
 function App() {
   const [token, setToken] = useState(null);
-  // eslint-disable-next-line
-  const [section, setSection] = useState("home");
-  // eslint-disable-next-line
   const [centrosComerciales, setCentrosComerciales] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleLogout = () => {
-    setToken(null);
-  };
+  useEffect(() => {
+    if (token) {
+      const fetchData = async () => {
+        try {
+          const response = await axios.get(
+            "http://127.0.0.1:8000/admin/centros_comerciales",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          setCentrosComerciales(response.data);
+        } catch (error) {
+          console.error("Error fetching data", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchData();
+    }
+  }, [token]);
 
   const handleSectionChange = (section) => {
-    setSection(section);
+    if (section === "home") {
+      navigate("/dashboard/home");
+    } else if (section === "centros") {
+      navigate("/dashboard/centros-comerciales");
+    }
   };
 
   return (
-    <Router>
-      {token ? (
+    <Routes>
+      <Route path="/" element={<LandingPage onLogin={setToken} />} />
+      <Route path="/login" element={<Login onLogin={setToken} />} />
+      {token && (
         <>
-          <Navbar onLogout={handleLogout} />
-          <Sidebar onSelectSection={handleSectionChange} />
-          <Container sx={{ marginLeft: "240px", padding: "2rem" }}>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/login" element={<Login onLogin={setToken} />} />
-              <Route
-                path="/dashboard"
-                element={
-                  token ? (
-                    <Dashboard token={token} />
-                  ) : (
-                    <Login onLogin={setToken} />
-                  )
-                }
-              />
-              {/* Otras rutas pueden ir aquí */}
-            </Routes>
-          </Container>
+          <Route
+            path="/dashboard/*"
+            element={
+              <>
+                <Sidebar onSelectSection={handleSectionChange} />
+                <Container sx={{ marginLeft: "240px", padding: "2rem" }}>
+                  <Routes>
+                    <Route path="home" element={<HomeAdmin />} />
+                    <Route
+                      path="centros-comerciales"
+                      element={
+                        <CentrosComerciales
+                          centros={centrosComerciales}
+                          token={token}
+                        />
+                      }
+                    />
+                    <Route
+                      path="centros-comerciales/:id"
+                      element={<CentroComercialDetails token={token} />}
+                    />
+                  </Routes>
+                </Container>
+              </>
+            }
+          />
         </>
-      ) : (
-        <Routes>
-          <Route path="/login" element={<Login onLogin={setToken} />} />
-        </Routes>
       )}
-    </Router>
+    </Routes>
   );
 }
 
