@@ -28,6 +28,7 @@ class Local(Base):
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String(100))
     codigo = Column(String(50), index=True)
+    codigoA2 = Column(String(50))
     razon_social = Column(String(200))
     persona_contacto = Column(String(50))
     mail_contacto = Column(String(100))

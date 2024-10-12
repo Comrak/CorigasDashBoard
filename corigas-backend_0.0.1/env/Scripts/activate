@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Code\Python\FastApi\Corigas\env"
+VIRTUAL_ENV="C:\Code\Python\FastApi\corigas-backend_0.0.1\env"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
